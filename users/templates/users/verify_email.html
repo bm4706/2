@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>이메일 인증</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label for="verification_code">이메일 인증 코드:</label>
+        <input type="text" name="verification_code" required>
+        <button type="submit">인증하기</button>
+    </form>
+{% endblock %}

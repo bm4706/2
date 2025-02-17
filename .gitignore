@@ -1,0 +1,11 @@
+# 환경 변수 파일 (비밀번호 포함)
+.env
+
+# Django 기본 캐시 및 로그 파일 제외
+__pycache__/
+*.pyc
+*.pyo
+db.sqlite3
+
+
+venv/

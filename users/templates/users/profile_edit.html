@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>프로필 수정</h2>
+    <form method="post" enctype="multipart/form-data">  <!-- enctype 추가 -->
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">수정 완료</button>
+    </form>
+
+    <h3>현재 프로필 이미지</h3>
+    {% if user.profile_image %}
+        <img src="{{ user.profile_image.url }}" alt="프로필 이미지" style="width: 150px; height: 150px;">
+    {% else %}
+        <p>프로필 이미지가 없습니다.</p>
+    {% endif %}
+
+    <br>
+    <a href="{% url 'profile' %}">취소</a>
+{% endblock %}

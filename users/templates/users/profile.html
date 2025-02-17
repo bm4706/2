@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>프로필 페이지</h2>
+
+    
+    {% if not user.is_email_verified %}
+    <p style="color: red;">❌ 이메일 인증 필요</p>
+    <a href="{% url 'send_verification_email' %}"><button>이메일 인증 코드 받기</button></a>
+    <a href="{% url 'verify_email_code' %}"><button>인증 코드 입력</button></a>
+    {% else %}
+        <p style="color: green;">✅ 이메일 인증 완료</p>
+    {% endif %}
+
+    <p><strong>이메일:</strong> {{ user.email }}</p>
+    <p><strong>닉네임:</strong> {{ user.nickname }}</p>
+
+    <h3>현재 프로필 이미지</h3>
+    {% if user.profile_image %}
+        <img src="{{ user.profile_image.url }}" alt="프로필 이미지" style="width: 150px; height: 150px;">
+    {% else %}
+        <p>프로필 이미지가 없습니다.</p>
+    {% endif %}
+
+    <h3>프로필 수정</h3>
+    <a href="{% url 'profile_edit' %}"><button>프로필 수정</button></a>
+
+    <h3>비밀번호 변경</h3>
+    <a href="{% url 'password_change' %}"><button>비밀번호 변경</button></a>
+{% endblock %}
