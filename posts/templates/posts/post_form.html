@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>{% if post %}게시글 수정{% else %}새 게시글 작성{% endif %}</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <label>제목:</label>
+        <input type="text" name="title" value="{{ post.title|default:'' }}" required>
+        <label>내용:</label>
+        <textarea name="content" required>{{ post.content|default:'' }}</textarea>
+        <button type="submit">저장</button>
+    </form>
+{% endblock %}

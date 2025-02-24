@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>{{ post.title }}</h2>
+    <p>작성자: {{ post.author.nickname }}</p>
+    <p>{{ post.content }}</p>
+    <p>작성일: {{ post.created_at }}</p>
+
+    {% if post.author == request.user %}
+        <a href="{% url 'post_update' post.id %}">수정</a>
+        <form method="POST" action="{% url 'post_delete' post.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit">삭제</button>
+        </form>
+    {% endif %}
+{% endblock %}

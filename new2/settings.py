@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     
     # 새로운 앱
     "users",
+    "posts",
     
 ]
 

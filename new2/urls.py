@@ -6,6 +6,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),  # 홈 페이지 포함
+    path('posts/', include("posts.urls")),
 ]
 
 
