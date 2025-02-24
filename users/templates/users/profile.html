@@ -2,7 +2,7 @@
 
 {% block content %}
     <h2>프로필 페이지</h2>
-
+    
     
     {% if not user.is_email_verified %}
     <p style="color: red;">❌ 이메일 인증 필요</p>
@@ -14,6 +14,7 @@
 
     <p><strong>이메일:</strong> {{ user.email }}</p>
     <p><strong>닉네임:</strong> {{ user.nickname }}</p>
+    <a href="{% url 'delete_user' %}"><button style="background-color: red; color: white;">회원 탈퇴</button></a>
 
     <h3>현재 프로필 이미지</h3>
     {% if user.profile_image %}

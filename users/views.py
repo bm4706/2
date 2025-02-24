@@ -8,6 +8,8 @@ from django.urls import reverse_lazy
 from django.core.mail import send_mail
 from django.conf import settings
 from django.http import HttpResponse
+from django.contrib import messages
+from django.contrib.auth.hashers import check_password
 
 def signup(request):
     if request.method == "POST":
@@ -91,7 +93,7 @@ class CustomPasswordChangeView(PasswordChangeView):
         update_session_auth_hash(self.request, user)  # 세션 유지
         return response
 
-
+# 이메일 인증 코드 발송송
 def send_verification_email(request):
     """이메일 인증 코드 생성 및 발송"""
     user = request.user
@@ -108,18 +110,19 @@ def send_verification_email(request):
         fail_silently=False,
     )
 
-    return render(request, "users/email_sent.html")  # 이메일 발송 완료 페이지
+    messages.success(request, "이메일이 성공적으로 발송되었습니다!")  # 메시지 추가
+    return redirect('profile')  # 이메일을 보낸 후 프로필 페이지로 이동
 
 
 
-""" 
-이메일 인증 코드 검증
-1) 사용자가 입력한 코드와 db에 저장된 인증 코드를 비교하여 검증
-2) 인증 성공시 True로 변경
-3) 인증 후 코드를 삭제해서 재사용 방지지
-
-"""
+# 이메일 인증 코드
 def verify_email_code(request):
+    """ 
+    1) 사용자가 입력한 코드와 db에 저장된 인증 코드를 비교하여 검증
+    2) 인증 성공시 True로 변경
+    3) 인증 후 코드를 삭제해서 재사용 방지지
+
+    """
     if request.method == "POST":
         input_code = request.POST.get("verification_code")  # 사용자가 입력한 코드
         user = request.user
@@ -133,3 +136,26 @@ def verify_email_code(request):
             return HttpResponse("잘못된 인증 코드입니다. 다시 시도하세요.")
 
     return render(request, "users/verify_email.html")
+
+
+# 회원 탈퇴 기능
+def delete_user(request):
+    """
+    1) 사용자가 입력한 비밀번호가 현재 비밀번호와 일치 여부 확인
+    2) 일치한다면 user.delete()로 계정 삭제후 로그아웃
+    3) 불일치시 오류메세지 출력력
+    """
+    if request.method == "POST":
+        password = request.POST.get("password")
+        user = request.user
+
+        # 비밀번호 확인
+        if check_password(password, user.password):  
+            user.delete()  # 회원 삭제
+            logout(request)  # 세션 초기화 (자동 로그아웃)
+            messages.success(request, "회원 탈퇴가 완료되었습니다.")
+            return redirect("login")  # 로그인 페이지로 이동
+        else:
+            messages.error(request, "비밀번호가 일치하지 않습니다.")
+
+    return render(request, "users/delete_user.html")
