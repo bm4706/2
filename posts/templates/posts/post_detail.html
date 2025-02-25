@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load custom_filters %}  <!-- 커스텀 필터 로드 -->
 
 {% block content %}
     <h2>{{ post.title }}</h2>
@@ -13,4 +14,31 @@
             <button type="submit">삭제</button>
         </form>
     {% endif %}
+
+    <h3>좋아요/싫어요</h3>
+    <p>👍 좋아요: {{ post_likes }} | 👎 싫어요: {{ post_dislikes }}</p>
+
+    <form method="POST" action="{% url 'like_dislike_post' post.id %}">
+        {% csrf_token %}
+        <button type="submit" name="value" value="1">👍 좋아요</button>
+        <button type="submit" name="value" value="-1">👎 싫어요</button>
+    </form>
+
+    <h3>댓글</h3>
+    <form method="POST" action="{% url 'add_comment' post.id %}">
+        {% csrf_token %}
+        <textarea name="content" required></textarea>
+        <button type="submit">댓글 작성</button>
+    </form>
+
+    {% for comment in comments %}
+        <p>{{ comment.author.nickname }}: {{ comment.content }}</p>
+        <p>👍 좋아요: {{ comment_reactions|get_item:comment.id|get_item:"likes" }} | 👎 싫어요: {{ comment_reactions|get_item:comment.id|get_item:"dislikes" }}</p>
+
+        <form method="POST" action="{% url 'like_dislike_comment' comment.id %}">
+            {% csrf_token %}
+            <button type="submit" name="value" value="1">👍</button>
+            <button type="submit" name="value" value="-1">👎</button>
+        </form>
+    {% endfor %}
 {% endblock %}
