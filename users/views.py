@@ -11,6 +11,9 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
 
+from posts.models import Post, Comment 
+from django.contrib.auth.decorators import login_required
+
 def signup(request):
     if request.method == "POST":
         form = SignUpForm(request.POST)
@@ -50,10 +53,24 @@ def home(request):
 
 
 def profile(request):
-    if not request.user.is_authenticated:  # Django 기본 인증 방식 사용
+    """
+    1. 사용자 정보
+    2. 내가 작성한 게시글과 댓글 확인
+    """
+    if not request.user.is_authenticated:  
         return redirect('login')  # 로그인하지 않은 경우 로그인 페이지로 이동
-
-    return render(request, "users/profile.html", {"user": request.user})  # request.user 사용
+    
+    user = request.user 
+    
+    # 게시글과 댓글 가져오기
+    my_posts = Post.objects.filter(author=user).order_by("-created_at")
+    my_comments = Comment.objects.filter(author=user).order_by("-created_at")
+    
+    return render(request, "users/profile.html", {
+        "user": user,
+        "my_posts": my_posts,
+        "my_comments": my_comments
+    })
 
 def profile_edit(request):
     if not request.user.is_authenticated:
@@ -159,3 +176,8 @@ def delete_user(request):
             messages.error(request, "비밀번호가 일치하지 않습니다.")
 
     return render(request, "users/delete_user.html")
+
+
+
+
+

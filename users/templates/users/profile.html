@@ -28,4 +28,37 @@
 
     <h3>비밀번호 변경</h3>
     <a href="{% url 'password_change' %}"><button>비밀번호 변경</button></a>
+
+    <h3>내가 작성한 게시글</h3>
+    {% if my_posts %}
+        <ul>
+            {% for post in my_posts %}
+                <li>
+                    <a href="{% url 'post_detail' post.id %}">{{ post.title }}</a>
+                    <span>({{ post.created_at }})</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>작성한 게시글이 없습니다.</p>
+    {% endif %}
+
+    <h3>내가 작성한 댓글</h3>
+    {% if my_comments %}
+        <ul>
+            {% for comment in my_comments %}
+                <li>
+                    <p>{{ comment.content }}</p>
+                    <p>작성한 게시글: <a href="{% url 'post_detail' comment.post.id %}">{{ comment.post.title }}</a></p>
+                    <span>({{ comment.created_at }})</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>작성한 댓글이 없습니다.</p>
+    {% endif %}
+
+
+
+
 {% endblock %}
