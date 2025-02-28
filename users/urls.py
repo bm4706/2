@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import signup, user_login, user_logout, home, profile, profile_edit, CustomPasswordChangeView, send_verification_email, verify_email_code, delete_user
+from .views import signup, user_login, user_logout, home, profile, profile_edit, CustomPasswordChangeView, send_verification_email, verify_email_code, delete_user, password_reset_request, password_reset_confirm, password_reset_complete
 
 urlpatterns = [
     path('', home, name='home'),
@@ -18,4 +18,11 @@ urlpatterns = [
     
     # 회원탈퇴
     path('delete_account/', delete_user, name='delete_user'),
+    
+    # 비밀번호 재설정
+    path('password_reset/', password_reset_request, name='password_reset_request'),
+    path('password_reset/<str:uidb64>/<str:token>/', password_reset_confirm, name='password_reset_confirm'),
+    path('password_reset/complete/', password_reset_complete, name='password_reset_complete'),
+
+    
 ]

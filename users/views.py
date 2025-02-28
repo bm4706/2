@@ -14,6 +14,11 @@ from django.contrib.auth.hashers import check_password
 from posts.models import Post, Comment 
 from django.contrib.auth.decorators import login_required
 
+from .forms import PasswordResetRequestForm, SetNewPasswordForm # 비밀번호 재설정정
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.urls import reverse
+
 def signup(request):
     if request.method == "POST":
         form = SignUpForm(request.POST)
@@ -110,7 +115,7 @@ class CustomPasswordChangeView(PasswordChangeView):
         update_session_auth_hash(self.request, user)  # 세션 유지
         return response
 
-# 이메일 인증 코드 발송송
+# 이메일 인증 코드 발송
 def send_verification_email(request):
     """이메일 인증 코드 생성 및 발송"""
     user = request.user
@@ -179,5 +184,80 @@ def delete_user(request):
 
 
 
+def password_reset_request(request):
+    """비밀번호 재설정 요청 처리"""
+    if request.method == "POST":
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["email"]
+            user = CustomUser.objects.get(email=email)
+            
+            # 토큰 생성
+            token = user.generate_password_reset_token()
+            
+            # 안전한 URL 생성용 사용자 ID 인코딩
+            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+            
+            # 비밀번호 재설정 링크 생성
+            reset_url = request.build_absolute_uri(
+                reverse('password_reset_confirm', kwargs={'uidb64': uidb64, 'token': token})
+            )
+            
+            # 이메일 발송
+            send_mail(
+                subject="비밀번호 재설정 안내",
+                message=f"""안녕하세요, {user.nickname}님.
+                
+비밀번호 재설정을 요청하셨습니다. 아래 링크를 클릭하여 새 비밀번호를 설정하세요:
 
+{reset_url}
 
+이 링크는 24시간 동안만 유효합니다.
+요청하지 않으셨다면 이 이메일을 무시하셔도 됩니다.""",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+            
+            messages.success(request, "비밀번호 재설정 링크가 이메일로 발송되었습니다.")
+            return redirect('login')
+    else:
+        form = PasswordResetRequestForm()
+    
+    return render(request, "users/password_reset_request.html", {"form": form})
+
+def password_reset_confirm(request, uidb64, token):
+    """비밀번호 재설정 링크 확인 및 새 비밀번호 설정"""
+    try:
+        # 사용자 ID 디코딩
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = CustomUser.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+        user = None
+    
+    # 사용자와 토큰 유효성 검사
+    if user is None or not user.is_password_reset_token_valid(token):
+        messages.error(request, "비밀번호 재설정 링크가 유효하지 않습니다.")
+        return redirect('password_reset_request')
+    
+    if request.method == "POST":
+        form = SetNewPasswordForm(request.POST)
+        if form.is_valid():
+            # 새 비밀번호 설정
+            user.set_password(form.cleaned_data["password1"])
+            
+            # 토큰 무효화
+            user.password_reset_token = None
+            user.password_reset_token_created_at = None
+            user.save()
+            
+            messages.success(request, "비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 로그인하세요.")
+            return redirect('password_reset_complete')
+    else:
+        form = SetNewPasswordForm()
+    
+    return render(request, "users/password_reset_confirm.html", {"form": form})
+
+def password_reset_complete(request):
+    """비밀번호 재설정 완료 페이지"""
+    return render(request, "users/password_reset_complete.html")

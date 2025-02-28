@@ -1,7 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
-import string
-import secrets
+import string, datetime, secrets
+from django.utils import timezone
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, nickname, password=None):
@@ -26,6 +27,10 @@ class CustomUser(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)  # 이메일 인증 여부
     email_verification_code = models.CharField(max_length=6, blank=True, null=True) # 인증 코드 저장
+    
+    # 비밀번호 재설정
+    password_reset_token = models.CharField(max_length=100, blank=True, null=True)
+    password_reset_token_created_at = models.DateTimeField(blank=True, null=True)
     
     
     objects = CustomUserManager()
@@ -57,3 +62,25 @@ class CustomUser(AbstractBaseUser):
         self.email_verification_code = "".join(secrets.choice(digit_and_alpha) for _ in range(6))
         self.save()
 
+    def generate_password_reset_token(self):
+        
+        chars = string.ascii_letters + string.digits
+        token = ''.join(secrets.choice(chars) for _ in range(50))
+        
+        self.password_reset_token = token
+        self.password_reset_token_created_at = timezone.now()
+        self.save(update_fields=['password_reset_token', 'password_reset_token_created_at'])
+        
+        return token
+    
+    
+    def is_password_reset_token_valid(self, token):
+        if self.password_reset_token != token:
+            return False
+            
+        if self.password_reset_token_created_at is None:
+            return False
+            
+        # 토큰 만료 확인 (24시간)
+        expiry_time = self.password_reset_token_created_at + datetime.timedelta(hours=24)
+        return timezone.now() <= expiry_time
