@@ -16,5 +16,4 @@ urlpatterns = [
     path("<int:post_id>/comment/", add_comment, name="add_comment"),
     
     
-    
 ]

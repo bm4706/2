@@ -4,11 +4,43 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 
-def post_list(request):
-    """게시글 목록"""
-    posts = Post.objects.all().order_by("-created_at")  # 최신 글 순 정렬
-    return render(request, "posts/post_list.html", {"posts": posts})
+from django.db.models import Q
+from .forms import PostSearchForm
 
+def post_list(request):
+    """게시글 목록 + 검색 기능"""
+    # 검색 폼 처리
+    form = PostSearchForm(request.GET)
+    posts = Post.objects.all().order_by("-created_at")  # 기본: 최신 글 순
+    
+    # 검색 처리
+    if form.is_valid() and 'query' in request.GET:
+        query = form.cleaned_data['query']
+        search_type = form.cleaned_data['search_type']
+        
+        if query:  # 검색어가 있는 경우만 필터링
+            if search_type == 'title':
+                posts = posts.filter(title__icontains=query)
+            elif search_type == 'content':
+                posts = posts.filter(content__icontains=query)
+            elif search_type == 'author':
+                posts = posts.filter(author__nickname__icontains=query)
+            else:  # 'all' 또는 기타 경우
+                posts = posts.filter(
+                    Q(title__icontains=query) |
+                    Q(content__icontains=query) |
+                    Q(author__nickname__icontains=query)
+                )
+    
+
+    context = {
+        'posts': posts,
+        'form': form,
+        'query': request.GET.get('query', ''),
+        'search_type': request.GET.get('search_type', 'all'),
+    }
+    
+    return render(request, "posts/post_list.html", context)
 def post_detail(request, post_id):
     """게시글 상세 페이지 + 좋아요/싫어요 개수 포함"""
     post = get_object_or_404(Post, id=post_id)

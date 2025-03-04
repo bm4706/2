@@ -1,14 +1,106 @@
+<!-- posts/templates/posts/post_list.html 수정 -->
 {% extends "base.html" %}
 
 {% block content %}
-    <h2>게시판</h2>
-    <a href="{% url 'post_create' %}">새 글 작성</a>
-    <ul>
-        {% for post in posts %}
-            <li>
-                <a href="{% url 'post_detail' post.id %}">{{ post.title }}</a>
-                <small>작성자: {{ post.author.nickname }} | {{ post.created_at }}</small>
-            </li>
-        {% endfor %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>게시글 목록</h2>
+    <a href="{% url 'post_create' %}" class="btn btn-primary">글쓰기</a>
+  </div>
+  
+  <!-- 검색 폼 추가 -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-8">
+          {{ form.query }}
+        </div>
+        <div class="col-md-3">
+          {{ form.search_type }}
+        </div>
+        <div class="col-md-1">
+          <button type="submit" class="btn btn-primary w-100">검색</button>
+        </div>
+      </form>
+      
+      {% if query %}
+      <div class="mt-2">
+        <span class="text-muted">
+          "{{ query }}"에 대한 
+          {% if search_type == 'title' %}제목
+          {% elif search_type == 'content' %}내용
+          {% elif search_type == 'author' %}작성자
+          {% else %}전체{% endif %} 
+          검색 결과 ({{ posts.paginator.count }}개)
+        </span>
+        <a href="{% url 'post_list' %}" class="ms-2 text-decoration-none">검색 초기화</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  
+  <!-- 게시글 목록 -->
+  {% if posts %}
+    <div class="list-group">
+      {% for post in posts %}
+        <a href="{% url 'post_detail' post.id %}" class="list-group-item list-group-item-action">
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ post.title }}</h5>
+            <small>{{ post.created_at|date:"Y-m-d H:i" }}</small>
+          </div>
+          <p class="mb-1">{{ post.content|truncatechars:100 }}</p>
+          <div class="d-flex justify-content-between">
+            <small>작성자: {{ post.author.nickname }}</small>
+            <small>댓글: {{ post.comments.count }}</small>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info text-center">
+      {% if query %}
+        검색 결과가 없습니다.
+      {% else %}
+        등록된 게시글이 없습니다.
+      {% endif %}
+    </div>
+  {% endif %}
+  
+  <!-- 페이지네이션 -->
+  {% if posts.paginator.num_pages > 1 %}
+  <nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if posts.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?query={{ query }}&search_type={{ search_type }}&page={{ posts.previous_page_number }}">이전</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">이전</span>
+        </li>
+      {% endif %}
+      
+      {% for i in posts.paginator.page_range %}
+        {% if posts.number == i %}
+          <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+        {% else %}
+          <li class="page-item">
+            <a class="page-link" href="?query={{ query }}&search_type={{ search_type }}&page={{ i }}">{{ i }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+      
+      {% if posts.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?query={{ query }}&search_type={{ search_type }}&page={{ posts.next_page_number }}">다음</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">다음</span>
+        </li>
+      {% endif %}
     </ul>
+  </nav>
+  {% endif %}
+</div>
 {% endblock %}
