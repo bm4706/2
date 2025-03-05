@@ -3,7 +3,16 @@
 
 {% block content %}
     <h2>{{ post.title }}</h2>
-    <p>작성자: {{ post.author.nickname }}</p>
+    <p>작성자: {{ post.author.nickname }}
+        {% if request.user.is_authenticated and request.user != post.author %}
+            <form method="post" action="{% url 'follow_toggle' post.author.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="{% if is_following %}unfollow-button{% else %}follow-button{% endif %}">
+                    {% if is_following %}언팔로우{% else %}팔로우{% endif %}
+                </button>
+            </form>
+        {% endif %}
+    </p>
     <p>{{ post.content }}</p>
     <p>작성일: {{ post.created_at }}</p>
 
@@ -41,4 +50,26 @@
             <button type="submit" name="value" value="-1">👎</button>
         </form>
     {% endfor %}
+{% endblock %}
+
+{% block styles %}
+<style>
+    .follow-button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 3px 8px;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+    
+    .unfollow-button {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 3px 8px;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+</style>
 {% endblock %}

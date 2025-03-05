@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import signup, user_login, user_logout, home, profile, profile_edit, CustomPasswordChangeView, send_verification_email, verify_email_code, delete_user, password_reset_request, password_reset_confirm, password_reset_complete
+from .views import signup, user_login, user_logout, home, profile, profile_edit, CustomPasswordChangeView, send_verification_email, verify_email_code, delete_user, password_reset_request, password_reset_confirm, password_reset_complete, follow_toggle, followers_list, following_list
 
 urlpatterns = [
     path('', home, name='home'),
@@ -24,5 +24,10 @@ urlpatterns = [
     path('password_reset/<str:uidb64>/<str:token>/', password_reset_confirm, name='password_reset_confirm'),
     path('password_reset/complete/', password_reset_complete, name='password_reset_complete'),
 
-    
+    # 팔로우 관련
+    path('follow/<int:user_id>/', follow_toggle, name='follow_toggle'),
+    path('followers/', followers_list, name='followers_list'),
+    path('following/', following_list, name='following_list'),
+    path('<str:nickname>/followers/', followers_list, name='user_followers_list'),
+    path('<str:nickname>/following/', following_list, name='user_following_list'),
 ]

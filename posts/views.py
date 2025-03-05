@@ -7,6 +7,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from .forms import PostSearchForm
 
+from users.models import Follow
+
 def post_list(request):
     """게시글 목록 + 검색 기능"""
     # 검색 폼 처리
@@ -57,12 +59,22 @@ def post_detail(request, post_id):
         dislikes = LikeDislike.objects.filter(content_type=ContentType.objects.get_for_model(Comment), object_id=comment.id, value=-1).count()
         comment_reactions[comment.id] = {"likes": likes, "dislikes": dislikes}
 
+    # 현재 사용자가 게시글 작성자를 팔로우하고 있는지 확인
+    is_following = False
+    if request.user.is_authenticated and request.user != post.author:
+        is_following = Follow.objects.filter(
+            follower=request.user, 
+            following=post.author
+        ).exists()   
+    
+    
     return render(request, "posts/post_detail.html", {
         "post": post,
         "comments": comments,
         "post_likes": post_likes,
         "post_dislikes": post_dislikes,
         "comment_reactions": comment_reactions,
+        "is_followings": is_following,
     })
 
 @login_required

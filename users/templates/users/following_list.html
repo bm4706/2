@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>
+    {% if is_self %}
+      내가 팔로우하는 사람들
+    {% else %}
+      {{ user.nickname }}님이 팔로우하는 사람들
+    {% endif %}
+  </h3>
+  
+  <ul>
+    {% for followed_user in following %}
+      <li>
+        {{ followed_user.nickname }}
+        
+        {% if request.user != followed_user %}
+          <form method="post" action="{% url 'follow_toggle' followed_user.id %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit">언팔로우</button>
+          </form>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li>팔로우하는 사람이 없습니다.</li>
+    {% endfor %}
+  </ul>
+  
+  <a href="{% url 'profile' %}">프로필로 돌아가기</a>
+</div>
+{% endblock %}

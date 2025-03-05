@@ -84,3 +84,16 @@ class CustomUser(AbstractBaseUser):
         # 토큰 만료 확인 (24시간)
         expiry_time = self.password_reset_token_created_at + datetime.timedelta(hours=24)
         return timezone.now() <= expiry_time
+    
+    
+    
+class Follow(models.Model):
+    follower = models.ForeignKey(CustomUser, related_name='following', on_delete=models.CASCADE)
+    following = models.ForeignKey(CustomUser, related_name='followers', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('follower', 'following')  # 중복 팔로우 방지
+        
+    def __str__(self):
+        return f"{self.follower.nickname} follows {self.following.nickname}"

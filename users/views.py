@@ -1,17 +1,17 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from .forms import SignUpForm, LoginForm, ProfileEditForm
-from .models import CustomUser
+from .models import CustomUser, Follow
 from django.contrib.auth.views import PasswordChangeView
 from django.contrib.auth import authenticate, login, update_session_auth_hash, logout
 from django.urls import reverse_lazy
 
 from django.core.mail import send_mail
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
 
-from posts.models import Post, Comment 
+from posts.models import Post, Comment
 from django.contrib.auth.decorators import login_required
 
 from .forms import PasswordResetRequestForm, SetNewPasswordForm # 비밀번호 재설정정
@@ -261,3 +261,81 @@ def password_reset_confirm(request, uidb64, token):
 def password_reset_complete(request):
     """비밀번호 재설정 완료 페이지"""
     return render(request, "users/password_reset_complete.html")
+
+
+
+@login_required
+def follow_toggle(request, user_id):
+    """사용자 팔로우/언팔로우 토글 기능"""
+    if request.method != 'POST':
+        return redirect('profile')
+        
+    target_user = get_object_or_404(CustomUser, id=user_id)
+    
+    # 자기 자신을 팔로우할 수 없음
+    if request.user == target_user:
+        messages.error(request, '자기 자신을 팔로우할 수 없습니다.')
+        return redirect('profile')
+    
+    # 이미 팔로우 중인지 확인
+    follow_relation = Follow.objects.filter(follower=request.user, following=target_user)
+    
+    if follow_relation.exists():
+        # 팔로우 관계가 있으면 삭제 (언팔로우)
+        follow_relation.delete()
+        messages.success(request, f'{target_user.nickname}님 팔로우를 취소했습니다.')
+    else:
+        # 팔로우 관계가 없으면 생성 (팔로우)
+        Follow.objects.create(follower=request.user, following=target_user)
+        messages.success(request, f'{target_user.nickname}님을 팔로우합니다.')
+    
+    # 이전 페이지로 리디렉션
+    return redirect(request.META.get('HTTP_REFERER', 'profile'))
+
+@login_required
+def followers_list(request, nickname=None):
+    """팔로워 목록 보기 (나를 팔로우하는 사람들)"""
+    if nickname:
+        user = get_object_or_404(CustomUser, nickname=nickname)
+    else:
+        user = request.user
+    
+    # 사용자의 팔로워 목록 가져오기
+    followers = user.followers.all().select_related('follower')
+    
+    # 각 팔로워에 대해 현재 사용자가 팔로우하는지 여부 계산
+    followers_data = []
+    for follow in followers:
+        follower = follow.follower
+        is_following = Follow.objects.filter(follower=request.user, following=follower).exists() if request.user.is_authenticated else False
+        followers_data.append({
+            'user': follower,
+            'is_following': is_following
+        })
+    
+    context = {
+        'user': user,
+        'followers_data': followers_data,
+        'is_self': user == request.user,
+    }
+    
+    return render(request, 'users/followers_list.html', context)
+@login_required
+def following_list(request, nickname=None):
+    """팔로잉 목록 가져오기"""
+    if nickname:
+        user = get_object_or_404(CustomUser, nickname=nickname)
+    else:
+        user = request.user
+    
+    # 사용자가 팔로우하는 목록 가져오기
+    following = user.following.all().select_related('following')
+    following_list = [follow.following for follow in following]
+    
+    context = {
+        'user': user,
+        'following': following_list,
+        'is_self': user == request.user,
+    }
+    
+    return render(request, 'users/following_list.html', context)

@@ -14,6 +14,14 @@
 
     <p><strong>이메일:</strong> {{ user.email }}</p>
     <p><strong>닉네임:</strong> {{ user.nickname }}</p>
+
+    <!-- 팔로워/팔로잉 정보 추가 -->
+    <div style="margin-bottom: 15px;">
+        <a href="{% url 'followers_list' %}"><strong>팔로워:</strong> {{ followers_count }}</a> | 
+        <a href="{% url 'following_list' %}"><strong>팔로잉:</strong> {{ following_count }}</a>
+    </div>
+
+
     <a href="{% url 'delete_user' %}"><button style="background-color: red; color: white;">회원 탈퇴</button></a>
 
     <h3>현재 프로필 이미지</h3>
