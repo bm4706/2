@@ -293,6 +293,34 @@ def follow_toggle(request, user_id):
     return redirect(request.META.get('HTTP_REFERER', 'profile'))
 
 @login_required
+def followers_list(request, nickname=None):
+    """팔로워 목록 보기 (나를 팔로우하는 사람들)"""
+    if nickname:
+        user = get_object_or_404(CustomUser, nickname=nickname)
+    else:
+        user = request.user
+    
+    # 사용자의 팔로워 목록 가져오기
+    followers = user.followers.all().select_related('follower')
+    
+    # 각 팔로워에 대해 현재 사용자가 팔로우하는지 여부 계산
+    followers_data = []
+    for follow in followers:
+        follower = follow.follower
+        is_following = Follow.objects.filter(follower=request.user, following=follower).exists() if request.user.is_authenticated else False
+        followers_data.append({
+            'user': follower,
+            'is_following': is_following
+        })
+    
+    context = {
+        'user': user,
+        'followers_data': followers_data,
+        'is_self': user == request.user,
+    }
+    
+    return render(request, 'users/followers_list.html', context)
+@login_required
 def following_list(request, nickname=None):
     """팔로잉 목록 가져오기"""
     if nickname:
