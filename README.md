@@ -2,19 +2,13 @@
 
 ![Django](https://img.shields.io/badge/Django-4.2-green)
 ![Python](https://img.shields.io/badge/Python-3.8+-blue)
-![License](https://img.shields.io/badge/License-MIT-yellow)
 
 Django 프레임워크를 사용하여 구현한 커뮤니티 웹 애플리케이션입니다. 사용자 관리, 게시글 작성, 댓글, 좋아요, 팔로우 등 다양한 소셜 기능을 포함하고 있습니다.
 
-![프로젝트 스크린샷](https://via.placeholder.com/800x400?text=Django+Community+Project)
 
 ## 📋 목차
 
 - [구현 기능](#-구현-기능)
-- [데이터 모델](#-데이터-모델)
-- [설치 및 실행 방법](#-설치-및-실행-방법)
-- [향후 개발 계획](#-향후-개발-계획)
-- [라이센스](#-라이센스)
 
 ## ✨ 구현 기능
 
