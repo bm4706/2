@@ -1,13 +1,33 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h2>{% if post %}게시글 수정{% else %}새 게시글 작성{% endif %}</h2>
-    <form method="POST">
-        {% csrf_token %}
-        <label>제목:</label>
-        <input type="text" name="title" value="{{ post.title|default:'' }}" required>
-        <label>내용:</label>
-        <textarea name="content" required>{{ post.content|default:'' }}</textarea>
-        <button type="submit">저장</button>
-    </form>
+<h2>{% if post %}게시글 수정{% else %}새 게시글 작성{% endif %}</h2>
+
+<form method="POST" enctype="multipart/form-data">  <!-- enctype 추가 -->
+    {% csrf_token %}
+    
+    <div class="mb-3">
+        <label for="{{ form.title.id_for_label }}">제목</label>
+        {{ form.title }}
+        {{ form.title.errors }}
+    </div>
+    
+    <div class="mb-3">
+        <label for="{{ form.content.id_for_label }}">내용</label>
+        {{ form.content }}
+        {{ form.content.errors }}
+    </div>
+    
+    <div class="mb-3">
+        <label for="{{ form.image.id_for_label }}">이미지</label>
+        {{ form.image }}
+        {{ form.image.errors }}
+        {% if post.image %}
+            <p>현재 이미지: <a href="{{ post.image.url }}" target="_blank">{{ post.image.name }}</a></p>
+        {% endif %}
+    </div>
+    
+    <button type="submit" class="btn btn-primary">저장</button>
+    <a href="{% url 'post_list' %}" class="btn btn-secondary">취소</a>
+</form>
 {% endblock %}

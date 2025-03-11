@@ -11,6 +11,8 @@ class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)  # 작성자 (사용자 연결)
     created_at = models.DateTimeField(auto_now_add=True)  # 작성일
     updated_at = models.DateTimeField(auto_now=True)  # 수정일
+    # 이미지 추가
+    image = models.ImageField(upload_to='post_image',blank=True, null=True)
 
     def __str__(self):
         return self.title

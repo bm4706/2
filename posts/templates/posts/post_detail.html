@@ -13,6 +13,14 @@
             </form>
         {% endif %}
     </p>
+    <!-- 이미지 표시 부분 추가 -->
+    {% if post.image %}
+    <div class="post-image">
+        <img src="{{ post.image.url }}" alt="게시글 이미지" style="max-width: 100%; margin: 10px 0;">
+    </div>
+    {% endif %}
+
+    
     <p>{{ post.content }}</p>
     <p>작성일: {{ post.created_at }}</p>
 

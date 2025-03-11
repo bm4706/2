@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 
 from django.db.models import Q
-from .forms import PostSearchForm
+from .forms import PostSearchForm, PostForm
 
 from users.models import Follow
 
@@ -81,24 +81,31 @@ def post_detail(request, post_id):
 def post_create(request):
     """게시글 작성"""
     if request.method == "POST":
-        title = request.POST["title"]
-        content = request.POST["content"]
-        Post.objects.create(title=title, content=content, author=request.user)
-        return redirect("post_list")
+        form = PostForm(request.POST, request.FILES)  # request.FILES 추가
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            return redirect("post_detail", post_id=post.id)
+    else:
+        form = PostForm()
 
-    return render(request, "posts/post_form.html")
+    return render(request, "posts/post_form.html", {"form": form})
 
 @login_required
 def post_update(request, post_id):
     """게시글 수정"""
     post = get_object_or_404(Post, id=post_id, author=request.user)  # 작성자만 수정 가능
+    
     if request.method == "POST":
-        post.title = request.POST["title"]
-        post.content = request.POST["content"]
-        post.save()
-        return redirect("post_detail", post_id=post.id)
+        form = PostForm(request.POST, request.FILES, instance=post)  # request.FILES 추가
+        if form.is_valid():
+            form.save()
+            return redirect("post_detail", post_id=post.id)
+    else:
+        form = PostForm(instance=post)
 
-    return render(request, "posts/post_form.html", {"post": post})
+    return render(request, "posts/post_form.html", {"form": form, "post": post})
 
 @login_required
 def post_delete(request, post_id):

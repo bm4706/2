@@ -1,5 +1,5 @@
 from django import forms
-
+from .models import Post
 
 
 # 검색 폼폼    
@@ -13,7 +13,21 @@ class PostSearchForm(forms.Form):
             ('title', '제목'),
             ('content', '내용'),
             ('author', '작성자'),
+            
         ],
         initial='all',
         widget=forms.Select(attrs={'class': 'form-control'})
     )
+    
+    
+    
+# 글 작성 폼
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'content', 'image']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
+        }
