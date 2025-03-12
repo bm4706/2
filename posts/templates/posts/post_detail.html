@@ -32,6 +32,21 @@
         </form>
     {% endif %}
 
+    <!-- 북마크 -->
+    {% if user.is_authenticated %}
+    <form method="POST" action="{% url 'bookmark_toggle' post.id %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="{% if user in post.bookmarked_by.all %}bookmark-active{% else %}bookmark{% endif %}">
+            {% if user in post.bookmarked_by.all %}
+                ⭐ 북마크 취소
+            {% else %}
+                ☆ 북마크
+            {% endif %}
+        </button>
+    </form>
+    {% endif %}
+
+
     <h3>좋아요/싫어요</h3>
     <p>👍 좋아요: {{ post_likes }} | 👎 싫어요: {{ post_dislikes }}</p>
 

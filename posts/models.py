@@ -52,3 +52,15 @@ class LikeDislike(models.Model):
 
     def __str__(self):
         return f"{self.user} ({'좋아요' if self.value == 1 else '싫어요'}) - {self.content_object}"
+
+class Bookmark(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookmarks')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='bookmarked_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('user', 'post')  # 한 사용자가 같은 게시글을 중복 북마크하지 못하도록
+        
+    def __str__(self):
+        return f"{self.user.nickname}의 북마크: {self.post.title}"
+    

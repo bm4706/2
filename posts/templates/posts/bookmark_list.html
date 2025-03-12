@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>내 북마크</h2>
+
+{% if bookmarked_posts %}
+    <div class="bookmarks-list">
+        {% for post in bookmarked_posts %}
+            <div class="bookmark-item">
+                <h3><a href="{% url 'post_detail' post.id %}">{{ post.title }}</a></h3>
+                <p>작성자: {{ post.author.nickname }}</p>
+                <p>작성일: {{ post.created_at|date:"Y-m-d H:i" }}</p>
+                <p>{{ post.content|truncatechars:100 }}</p>
+                
+                <form method="POST" action="{% url 'bookmark_toggle' post.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="bookmark-remove">⭐ 북마크 취소</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>북마크한 게시글이 없습니다.</p>
+{% endif %}
+{% endblock %}

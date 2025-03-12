@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Post, Comment, LikeDislike
+from .models import Post, Comment, LikeDislike, Bookmark
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+from django.contrib import messages
 
 from django.db.models import Q
 from .forms import PostSearchForm, PostForm
@@ -180,3 +181,40 @@ def add_comment(request, post_id):
             Comment.objects.create(post=post, author=request.user, content=content)
     
     return redirect("post_detail", post_id=post.id)  # 댓글 작성 후 게시글 상세 페이지로 리디렉트
+
+
+
+
+
+
+
+@login_required
+def bookmark_toggle(request, post_id):
+    """북마크 추가/제거 토글 기능"""
+    post = get_object_or_404(Post, id=post_id)
+    
+    # 이미 북마크했는지 확인
+    bookmark = Bookmark.objects.filter(user=request.user, post=post)
+    
+    if bookmark.exists():
+        # 이미 북마크가 있으면 제거
+        bookmark.delete()
+        messages.success(request, "북마크가 제거되었습니다.")
+    else:
+        # 북마크가 없으면 추가
+        Bookmark.objects.create(user=request.user, post=post)
+        messages.success(request, "북마크에 추가되었습니다.")
+    
+    # 이전 페이지로 리디렉션 (HTTP_REFERER가 있으면 사용, 없으면 post_detail로)
+    if 'HTTP_REFERER' in request.META:
+        return redirect(request.META['HTTP_REFERER'])
+    else:
+        return redirect('post_detail', post_id=post_id)
+
+@login_required
+def bookmark_list(request):
+    """사용자의 북마크 목록 보기"""
+    bookmarks = Bookmark.objects.filter(user=request.user).order_by('-created_at')
+    bookmarked_posts = [bookmark.post for bookmark in bookmarks]
+    
+    return render(request, "posts/bookmark_list.html", {"bookmarked_posts": bookmarked_posts})
