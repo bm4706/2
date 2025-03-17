@@ -13,10 +13,17 @@
             <a href="{% url 'post_create' %}">글쓰기</a>
             <a href="{% url 'bookmark_list' %}">내 북마크</a>
             <a href="{% url 'logout' %}">로그아웃</a>
+            <a href="{% url 'messages:inbox' %}" class="nav-link">
+                쪽지
+                {% if unread_messages_count > 0 %}
+                    <span class="badge bg-danger">{{ unread_messages_count }}</span>
+                {% endif %}
+            </a>
         {% else %}
             <a href="{% url 'login' %}">로그인</a>
             <a href="{% url 'signup' %}">회원가입</a>
         {% endif %}
+        
     </nav>
     {% block content %}{% endblock %}
 </body>

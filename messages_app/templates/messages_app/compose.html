@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>새 쪽지 작성</h2>
+    
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label for="{{ form.recipient.id_for_label }}" class="form-label">받는 사람</label>
+            {{ form.recipient }}
+            {% if form.recipient.errors %}
+                <div class="text-danger">{{ form.recipient.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label for="{{ form.subject.id_for_label }}" class="form-label">제목</label>
+            {{ form.subject }}
+            {% if form.subject.errors %}
+                <div class="text-danger">{{ form.subject.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label for="{{ form.content.id_for_label }}" class="form-label">내용</label>
+            {{ form.content }}
+            {% if form.content.errors %}
+                <div class="text-danger">{{ form.content.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">보내기</button>
+            <a href="{% url 'messages:inbox' %}" class="btn btn-outline-secondary">취소</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

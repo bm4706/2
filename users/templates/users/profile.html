@@ -14,6 +14,11 @@
 
     <p><strong>이메일:</strong> {{ user.email }}</p>
     <p><strong>닉네임:</strong> {{ user.nickname }}</p>
+    {% if request.user.is_authenticated and request.user != profile_user %}
+    <a href="{% url 'messages:compose' %}?to={{ profile_user.id }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-envelope"></i> 쪽지 보내기
+    </a>
+    {% endif %}
 
     <!-- 팔로워/팔로잉 정보 추가 -->
     <div style="margin-bottom: 15px;">

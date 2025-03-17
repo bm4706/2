@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     # 새로운 앱
     "users",
     "posts",
+    "messages_app",
     
 ]
 
@@ -57,6 +58,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'messages_app.context_processors.unread_messages_count',
             ],
         },
     },

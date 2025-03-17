@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>보낸 쪽지함</h2>
+    
+    <div class="mb-3">
+        <a href="{% url 'messages:compose' %}" class="btn btn-primary">새 쪽지 작성</a>
+        <a href="{% url 'messages:inbox' %}" class="btn btn-outline-secondary">받은 쪽지함</a>
+    </div>
+    
+    {% if messages_list %}
+        <div class="list-group">
+            {% for message in messages_list %}
+                <a href="{% url 'messages:view' message.id %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ message.subject }}</h5>
+                        <small>{{ message.sent_at|date:"Y-m-d H:i" }}</small>
+                    </div>
+                    <p class="mb-1">{{ message.content|truncatechars:100 }}</p>
+                    <small>받는 사람: {{ message.recipient.nickname }}</small>
+                    {% if message.is_read %}
+                        <span class="badge bg-success ms-2">읽음</span>
+                    {% else %}
+                        <span class="badge bg-secondary ms-2">읽지 않음</span>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">보낸 쪽지가 없습니다.</div>
+    {% endif %}
+</div>
+{% endblock %}

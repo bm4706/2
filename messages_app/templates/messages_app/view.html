@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between">
+            <h3>{{ message.subject }}</h3>
+            <small>{{ message.sent_at|date:"Y-m-d H:i" }}</small>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                {% if message.sender == request.user %}
+                    <strong>받는 사람:</strong> {{ message.recipient.nickname }}
+                {% else %}
+                    <strong>보낸 사람:</strong> {{ message.sender.nickname }}
+                {% endif %}
+            </div>
+            
+            <div class="message-content mb-4">
+                {{ message.content|linebreaks }}
+            </div>
+            
+            <div class="btn-group">
+                {% if message.sender != request.user %}
+                    <a href="{% url 'messages:compose' %}?to={{ message.sender.id }}" class="btn btn-primary">답장</a>
+                {% endif %}
+                <a href="{% if message.sender == request.user %}{% url 'messages:sent' %}{% else %}{% url 'messages:inbox' %}{% endif %}" class="btn btn-outline-secondary">목록으로</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
