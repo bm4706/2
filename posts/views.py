@@ -218,3 +218,16 @@ def bookmark_list(request):
     bookmarked_posts = [bookmark.post for bookmark in bookmarks]
     
     return render(request, "posts/bookmark_list.html", {"bookmarked_posts": bookmarked_posts})
+
+
+
+
+
+def tag_posts(request, tag_name):
+    """특정 태그가 있는 게시글만 보기"""
+    posts = Post.objects.filter(tags__name__in=[tag_name]).order_by('-created_at')
+    
+    return render(request, 'posts/tag_posts.html', {
+        'tag_name': tag_name,
+        'posts': posts
+    })

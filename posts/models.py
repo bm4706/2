@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
+from taggit.managers import TaggableManager
+
 User = get_user_model() # 기존 사용자 모델 참조
 
 class Post(models.Model):
@@ -13,6 +15,9 @@ class Post(models.Model):
     updated_at = models.DateTimeField(auto_now=True)  # 수정일
     # 이미지 추가
     image = models.ImageField(upload_to='post_image',blank=True, null=True)
+    
+    # 태그 필드 추가
+    tags = TaggableManager(blank=True)
 
     def __str__(self):
         return self.title

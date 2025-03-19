@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import post_list, post_detail, post_create, post_update, post_delete, like_dislike_post, add_comment, like_dislike_comment, bookmark_toggle, bookmark_list
+from .views import post_list, post_detail, post_create, post_update, post_delete, like_dislike_post, add_comment, like_dislike_comment, bookmark_toggle, bookmark_list, tag_posts
 
 urlpatterns = [
     path("", post_list, name="post_list"),
@@ -19,4 +19,6 @@ urlpatterns = [
     path("<int:post_id>/bookmark/", bookmark_toggle, name="bookmark_toggle"),
     path("bookmarks/", bookmark_list, name="bookmark_list"),
     
+    # 태그
+    path('tag/<str:tag_name>/', tag_posts, name='tag_posts'),
 ]

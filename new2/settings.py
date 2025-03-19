@@ -33,6 +33,10 @@ INSTALLED_APPS = [
     "posts",
     "messages_app",
     
+    # 태그시스템
+    'taggit',
+    'taggit_templatetags2',
+    
 ]
 
 MIDDLEWARE = [

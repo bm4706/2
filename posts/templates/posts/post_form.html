@@ -27,6 +27,14 @@
         {% endif %}
     </div>
     
+    <!-- 태그 필드 추가 -->
+    <div class="mb-3">
+        <label for="{{ form.tags.id_for_label }}">태그</label>
+        {{ form.tags }}
+        <small class="form-text text-muted">쉼표(,)로 구분하여 입력하세요. 예: 여행,사진,추억</small>
+        {{ form.tags.errors }}
+    </div>
+
     <button type="submit" class="btn btn-primary">저장</button>
     <a href="{% url 'post_list' %}" class="btn btn-secondary">취소</a>
 </form>

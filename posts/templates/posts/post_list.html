@@ -99,6 +99,15 @@
           <span class="page-link">다음</span>
         </li>
       {% endif %}
+
+  <!-- 각 게시글 항목 안에 태그 표시 추가 -->
+    {% if post.tags.all %}
+    <div class="mb-1">
+        {% for tag in post.tags.all %}
+        <a href="{% url 'tag_posts' tag.name %}" class="badge bg-primary me-1">{{ tag.name }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
     </ul>
   </nav>
   {% endif %}
