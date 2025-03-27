@@ -22,16 +22,28 @@ class Post(models.Model):
     def __str__(self):
         return self.title
 
-
 class Comment(models.Model):
     """댓글 모델"""
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
+    created_at = models.DateTimeField(auto_now_add=True)    
+    
+    # 대댓글 기능
+    parent = models.ForeignKey('self', null=True,blank=True, on_delete=models.CASCADE, related_name='replies')
+    
     def __str__(self):
         return f"{self.author} - {self.post.title[:10]}"
+    
+    @property
+    def children(self):
+        """해당 댓글의 대댓글 가져오기"""
+        return Comment.objects.filter(parent=self).order_by('created_at')
+    
+    @property
+    def is_parent(self):
+        """부모 댓글인지 확인"""
+        return self.parent is None
 
 
 class LikeDislike(models.Model):

@@ -1,6 +1,25 @@
 {% extends "base.html" %}
 {% load custom_filters %}  <!-- 커스텀 필터 로드 -->
 
+{% block extra_head %}
+<script>
+function toggleReplyForm(commentId) {
+  console.log('Toggle reply form for comment:', commentId);
+  const replyForm = document.getElementById('reply-form-' + commentId);
+  
+  if (replyForm) {
+    if (replyForm.style.display === 'none' || replyForm.style.display === '') {
+      replyForm.style.display = 'block';
+    } else {
+      replyForm.style.display = 'none';
+    }
+  } else {
+    console.error('Reply form element not found for comment ID:', commentId);
+  }
+}
+</script>
+{% endblock %}
+
 {% block content %}
     <h2>{{ post.title }}</h2>
     <p>작성자: {{ post.author.nickname }}
@@ -56,23 +75,110 @@
         <button type="submit" name="value" value="-1">👎 싫어요</button>
     </form>
 
-    <h3>댓글</h3>
-    <form method="POST" action="{% url 'add_comment' post.id %}">
+    <!-- 댓글 목록 -->
+<div class="comments mt-4">
+    <h4>댓글 {{ comments.count }}개</h4>
+    
+    <!-- 댓글 작성 폼 -->
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'add_comment' post.id %}" class="mb-3">
         {% csrf_token %}
-        <textarea name="content" required></textarea>
-        <button type="submit">댓글 작성</button>
+        <div class="form-group">
+            {{ comment_form.content }}
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">댓글 작성</button>
     </form>
-
+    {% else %}
+    <p>댓글을 작성하려면 <a href="{% url 'login' %}">로그인</a>해주세요.</p>
+    {% endif %}
+    
+    <!-- 댓글 목록 -->
     {% for comment in comments %}
-        <p>{{ comment.author.nickname }}: {{ comment.content }}</p>
-        <p>👍 좋아요: {{ comment_reactions|get_item:comment.id|get_item:"likes" }} | 👎 싫어요: {{ comment_reactions|get_item:comment.id|get_item:"dislikes" }}</p>
-
-        <form method="POST" action="{% url 'like_dislike_comment' comment.id %}">
-            {% csrf_token %}
-            <button type="submit" name="value" value="1">👍</button>
-            <button type="submit" name="value" value="-1">👎</button>
-        </form>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h6 class="card-subtitle mb-2 text-muted">{{ comment.author.nickname }} | {{ comment.created_at|date:"Y-m-d H:i" }}</h6>
+            <p class="card-text">{{ comment.content }}</p>
+            
+            <!-- 댓글 좋아요/싫어요 -->
+            <div class="d-flex">
+                <form method="post" action="{% url 'like_dislike_comment' comment.id %}" class="me-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="value" value="1">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        👍 {{ comment_reactions|get_item:comment.id|get_item:'likes' }}
+                    </button>
+                </form>
+                <form method="post" action="{% url 'like_dislike_comment' comment.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="value" value="-1">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        👎 {{ comment_reactions|get_item:comment.id|get_item:'dislikes' }}
+                    </button>
+                </form>
+                
+                <!-- 대댓글 작성 토글 버튼 -->
+                {% if user.is_authenticated %}
+                <button type="button" class="btn btn-sm btn-link ms-2" onclick="toggleReplyForm('{{ comment.id }}')">
+                    답글 달기
+                  </button>
+                {% endif %}
+            </div>
+            
+            <!-- 대댓글 작성 폼 (기본적으로 숨김) -->
+            {% if user.is_authenticated %}
+            <div class="reply-form mt-2" id="reply-form-{{ comment.id }}" style="display: none;">
+                <form method="post" action="{% url 'add_comment' post.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                    <div class="form-group">
+                        <textarea name="content" class="form-control" rows="2" placeholder="답글을 입력하세요"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary mt-2">답글 작성</button>
+                </form>
+            </div>
+            {% endif %}
+            
+            <!-- 대댓글 목록 -->
+            {% if comment.children.exists %}
+            <div class="replies mt-3 ms-4">
+                <h6 class="small text-muted mb-2">답글 {{ comment.children.count }}개</h6>
+                {% for reply in comment.children %}
+                <div class="card mb-2 border-start border-primary border-3">
+                    <div class="card-body py-2 bg-light">
+                        <span class="badge bg-secondary mb-1">답글</span>
+                        <h6 class="card-subtitle mb-1 text-muted">{{ reply.author.nickname }} | {{ reply.created_at|date:"Y-m-d H:i" }}</h6>
+                        <p class="card-text">{{ reply.content }}</p>
+                        
+                        <!-- 대댓글 좋아요/싫어요 -->
+                        <div class="d-flex">
+                            <form method="post" action="{% url 'like_dislike_comment' reply.id %}" class="me-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="value" value="1">
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    👍 {% if comment_reactions|get_item:reply.id %}{{ comment_reactions|get_item:reply.id|get_item:'likes' }}{% else %}0{% endif %}
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'like_dislike_comment' reply.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="value" value="-1">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    👎 {% if comment_reactions|get_item:reply.id %}{{ comment_reactions|get_item:reply.id|get_item:'dislikes' }}{% else %}0{% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <p>아직 댓글이 없습니다. 첫 댓글을 작성해보세요!</p>
     {% endfor %}
+    </div>                                  
+
+   
 
     <!-- 태그 표시 -->
     {% if post.tags.all %}
@@ -109,5 +215,14 @@
         border-radius: 3px;
         cursor: pointer;
     }
+    .reply-form {
+        display: none;
+        background-color: #f8f9fa; /* 배경색 추가하여 가시성 높이기 */
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 5px;
+        position: relative; /* 위치 지정 */
+        z-index: 100; /* 다른 요소보다 위에 표시 */
+      }
 </style>
 {% endblock %}

@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
 
 from django.db.models import Q
-from .forms import PostSearchForm, PostForm
+from .forms import CommentForm, PostSearchForm, PostForm
 
 from users.models import Follow
 
@@ -35,7 +35,6 @@ def post_list(request):
                     Q(author__nickname__icontains=query)
                 )
     
-
     context = {
         'posts': posts,
         'form': form,
@@ -47,7 +46,8 @@ def post_list(request):
 def post_detail(request, post_id):
     """게시글 상세 페이지 + 좋아요/싫어요 개수 포함"""
     post = get_object_or_404(Post, id=post_id)
-    comments = post.comments.all()
+    comments = post.comments.filter(parent=None)  # 부모 댓글만 가져오기
+    comment_form = CommentForm()  # 댓글 폼 추가
 
     # 게시글 좋아요/싫어요 개수 계산
     post_likes = LikeDislike.objects.filter(content_type=ContentType.objects.get_for_model(Post), object_id=post.id, value=1).count()
@@ -55,7 +55,7 @@ def post_detail(request, post_id):
 
     # 댓글별 좋아요/싫어요 개수 계산
     comment_reactions = {}
-    for comment in comments:
+    for comment in post.comments.all():
         likes = LikeDislike.objects.filter(content_type=ContentType.objects.get_for_model(Comment), object_id=comment.id, value=1).count()
         dislikes = LikeDislike.objects.filter(content_type=ContentType.objects.get_for_model(Comment), object_id=comment.id, value=-1).count()
         comment_reactions[comment.id] = {"likes": likes, "dislikes": dislikes}
@@ -76,6 +76,7 @@ def post_detail(request, post_id):
         "post_dislikes": post_dislikes,
         "comment_reactions": comment_reactions,
         "is_followings": is_following,
+        "comment_form": comment_form,
     })
 
 @login_required
@@ -172,19 +173,30 @@ def like_dislike_comment(request, comment_id):
     
 @login_required
 def add_comment(request, post_id):
-    """댓글 추가 기능"""
+    """
+    댓글 추가 기능
+    - parent_id가 있으면 대댓글 추가
+    - 없으면 일반 댓글 추가
+    """
     post = get_object_or_404(Post, id=post_id)
+    parent_id = request.POST.get('parent_id')
 
     if request.method == "POST":
-        content = request.POST.get("content")
-        if content:
-            Comment.objects.create(post=post, author=request.user, content=content)
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.author = request.user
+            
+            # 대댓글인 경우 부모 댓글 설정
+            if parent_id:
+                parent_comment = get_object_or_404(Comment, id=parent_id)
+                comment.parent = parent_comment
+            
+            comment.save()
+            messages.success(request, "댓글이 등록되었습니다.")  # 피드백 추가
     
-    return redirect("post_detail", post_id=post.id)  # 댓글 작성 후 게시글 상세 페이지로 리디렉트
-
-
-
-
+    return redirect("post_detail", post_id=post.id)
 
 
 
