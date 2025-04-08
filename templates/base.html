@@ -20,6 +20,15 @@
                     <span class="badge bg-danger">{{ unread_messages_count }}</span>
                 {% endif %}
             </a>
+            <!-- 알림 아이콘 -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'notifications:list' %}">
+                    <i class="bi bi-bell"></i> 알림
+                    {% if unread_notifications_count > 0 %}
+                    <span class="badge bg-danger">{{ unread_notifications_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
         {% else %}
             <a href="{% url 'login' %}">로그인</a>
             <a href="{% url 'signup' %}">회원가입</a>

@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "users",
     "posts",
     "messages_app",
+    "notifications",
     
     # 태그시스템
     'taggit',
@@ -63,6 +64,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 'messages_app.context_processors.unread_messages_count',
+                'notifications.context_processors.notifications_count',
             ],
         },
     },

@@ -8,6 +8,7 @@ urlpatterns = [
     path('users/', include('users.urls')),  # 홈 페이지 포함
     path('posts/', include("posts.urls")),
     path('messages/', include('messages_app.urls')),
+    path('notifications/', include('notifications.urls',namespace='notifications'))
 ]
 
 

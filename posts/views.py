@@ -10,6 +10,9 @@ from .forms import CommentForm, PostSearchForm, PostForm
 
 from users.models import Follow
 
+from notifications.utils import create_notification
+from notifications.models import Notification
+
 def post_list(request):
     """게시글 목록 + 검색 기능"""
     # 검색 폼 처리
@@ -192,8 +195,26 @@ def add_comment(request, post_id):
             if parent_id:
                 parent_comment = get_object_or_404(Comment, id=parent_id)
                 comment.parent = parent_comment
+                comment.save()
+                
+                # 대댓글 알림 생성
+                create_notification(
+                    recipient=parent_comment.author,
+                    actor=request.user,
+                    notification_type=Notification.REPLY,
+                    content_object=comment
+                )
+            else:
+                comment.save()
+                
+                # 일반 댓글 알림 생성
+                create_notification(
+                    recipient=post.author,
+                    actor=request.user,
+                    notification_type=Notification.COMMENT,
+                    content_object=comment
+                )
             
-            comment.save()
             messages.success(request, "댓글이 등록되었습니다.")  # 피드백 추가
     
     return redirect("post_detail", post_id=post.id)
